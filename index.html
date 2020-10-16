@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+
+  <h3>Click button to get coordinates</h3>
+
+  <button class='coords-btn'>Try it!</button>
+
+  <!-- здесь генерируем все значения из position.coords -->
+  <ul class='coords-data'></ul>  
+  <p class='coords-msg'></p>
+
+  <script>
+    const coordsBtn = document.querySelector('.coords-btn');
+    const coordsNode = document.querySelector('.coords-data');
+    const coordsMsg = document.querySelector('.coords-msg');
+
+    // Создать виртуальный объект Geolocation Coordinates
+    const createVirtualCoords = (coords) => {
+
+      // Cкрыть свое реальное местоположение
+      const latitude = coords.latitude + (Math.random() < .5 ? Math.random() * 11 : Math.random() * 16);
+      const longitude = coords.longitude + (Math.random() < .5 ? Math.random() * 23 : Math.random() * 27);
+
+      return {
+        latitude,  // широта (возвращается всегда)
+        longitude,  // долгота (возвращается всегда)
+        altitude: coords.altitude,
+        accuracy: coords.accuracy,  // точность (возвращается всегда)
+        altitudeAccuracy: coords.altitudeAccuracy,
+        heading: coords.heading,
+        speed: coords.speed
+      }
+    };
+
+    // Вывод всех свойств на экран
+    const showPosition = (position) => {
+      coordsMsg.style.color = 'green';
+      coordsNode.innerHTML = '';
+      const vCoords = createVirtualCoords(position.coords);
+
+      for (key in vCoords) {
+        const coordNode = document.createElement('li');
+        coordNode.textContent = `${key}: ${vCoords[key]}`
+        coordsNode.append(coordNode);
+      }
+
+      coordsMsg.textContent = "\
+        The user's position is determined with his permission, \
+        the real position is masked for security purposes";
+    };
+
+    // Обработка ошибок и исключений
+    const showError = (error) => {
+      coordsNode.innerHTML = '';
+      coordsMsg.style.color = 'red';
+
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          coordsMsg.textContent = "User denied the request for Geolocation."
+          break;
+        case error.POSITION_UNAVAILABLE:
+          coordsMsg.textContent = "Location information is unavailable."
+          break;
+        case error.TIMEOUT:
+          coordsMsg.textContent = "The request to get user location timed out."
+          break;
+        case error.UNKNOWN_ERROR:
+          coordsMsg.textContent = "An unknown error occurred."
+          break;
+      }
+    };
+
+    // Попытка получить геоданные пользователя
+    const getLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+        coordsNode.innerHTML = '';
+        coordsMsgs.style.color = 'red';
+        coordsMsg.textContent = 'Geolocation API is not supported this Browser';
+      }
+    };
+
+    // Обработчик кнопки
+    coordsBtn.onclick = () => getLocation();
+
+  </script>
+</body>
+</html>
